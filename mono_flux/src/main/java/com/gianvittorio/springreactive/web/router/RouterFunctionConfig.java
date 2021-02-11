@@ -1,6 +1,6 @@
-package com.gianvittorio.springreactive.router;
+package com.gianvittorio.springreactive.web.router;
 
-import com.gianvittorio.springreactive.handler.SampleHandlerFunction;
+import com.gianvittorio.springreactive.web.handler.SampleHandlerFunction;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;

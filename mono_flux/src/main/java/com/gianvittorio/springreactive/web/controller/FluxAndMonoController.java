@@ -1,4 +1,4 @@
-package com.gianvittorio.springreactive.controller;
+package com.gianvittorio.springreactive.web.controller;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,4 +1,4 @@
-package com.gianvittorio.springreactive.handler;
+package com.gianvittorio.springreactive.web.handler;
 
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
