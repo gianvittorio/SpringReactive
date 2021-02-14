@@ -1,4 +1,4 @@
-package com.gianvittorio.springreactive.web.controller.v1;
+package com.gianvittorio.springreactive.web.handler;
 
 import com.gianvittorio.springreactive.dao.repository.ItemReactiveRepository;
 import com.gianvittorio.springreactive.domain.document.Item;
@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -19,15 +18,14 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 
-import static com.gianvittorio.springreactive.constants.ItemConstants.ITEM;
+import static com.gianvittorio.springreactive.constants.ItemConstants.ITEM_FUNCTIONAL_ENDPOINT_V1;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@DirtiesContext
 @AutoConfigureWebTestClient
 @ActiveProfiles("test")
-public class ItemControllerTest {
+public class ItemHandlerTest {
 
     @Autowired
     private WebTestClient webTestClient;
@@ -47,7 +45,8 @@ public class ItemControllerTest {
     @Test
     public void getAllItems() {
         webTestClient.get()
-                .uri(ITEM)
+                .uri(ITEM_FUNCTIONAL_ENDPOINT_V1)
+                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -58,33 +57,30 @@ public class ItemControllerTest {
     @Test
     public void getAllItemsApproach2() {
         webTestClient.get()
-                .uri(ITEM)
+                .uri(ITEM_FUNCTIONAL_ENDPOINT_V1)
+                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBodyList(Item.class)
                 .hasSize(4)
                 .consumeWith(response -> {
-
                     List<Item> items = response.getResponseBody();
-
-                    items.forEach(
-                            item -> assertThat(item.getId()).isNotNull()
-                    );
+                    items.forEach(item -> assertThat(item.getId()).isNotNull());
                 });
     }
 
     @Test
     public void getAllItemsApproach3() {
-        Flux<Item> itemsFlux = webTestClient.get()
-                .uri(ITEM)
+        Flux<Item> itemFlux = webTestClient.get()
+                .uri(ITEM_FUNCTIONAL_ENDPOINT_V1)
+                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .returnResult(Item.class)
                 .getResponseBody();
 
-        StepVerifier.create(itemsFlux.log())
+        StepVerifier.create(itemFlux)
                 .expectSubscription()
                 .expectNextCount(4)
                 .expectComplete();
@@ -93,7 +89,7 @@ public class ItemControllerTest {
     @Test
     public void getOneItem() {
         webTestClient.get()
-                .uri(ITEM.concat("/{id}"), "ABC")
+                .uri(ITEM_FUNCTIONAL_ENDPOINT_V1.concat("/{id}"), "ABC")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody().jsonPath("$.price", 149.99);
@@ -102,25 +98,26 @@ public class ItemControllerTest {
     @Test
     public void getItemNotFound() {
         webTestClient.get()
-                .uri(ITEM.concat("/{id}"), "DEF")
+                .uri(ITEM_FUNCTIONAL_ENDPOINT_V1.concat("/{id}"), "DEF")
                 .exchange()
                 .expectStatus().isNotFound();
     }
 
     @Test
-    public void createItemTest() {
+    public void createItem() {
         Item item = Item.create()
-                .description("Amazon Fire Stick")
-                .price(39.99)
+                .description("Xbox Series X")
+                .price(299.99)
                 .build();
 
         webTestClient.post()
-                .uri(ITEM)
+                .uri(ITEM_FUNCTIONAL_ENDPOINT_V1)
+                .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(item), Item.class)
-                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isCreated()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
                 .jsonPath("$.id").isNotEmpty()
                 .jsonPath("$.description").isEqualTo(item.getDescription())
@@ -128,45 +125,52 @@ public class ItemControllerTest {
     }
 
     @Test
-    public void deleteItemTest() {
+    public void deleteItem() {
         webTestClient.delete()
-                .uri(ITEM.concat("/{id}"), "ABC")
+                .uri(ITEM_FUNCTIONAL_ENDPOINT_V1.concat("/{id}"), "ABC")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isNoContent()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody(Void.class);
     }
 
     @Test
-    public void updateItemTest() {
-        double newPrice = 129.99;
-        Item item = Item.create()
+    public void updateItem() {
+        double newPrice = 139.99;
+
+        Item updatingItem = Item.create()
+                .description("Beats Headphone")
                 .price(newPrice)
                 .build();
 
         webTestClient.put()
-                .uri(ITEM.concat("/{id}"), "ABC")
-                .contentType(MediaType.APPLICATION_JSON)
+                .uri(ITEM_FUNCTIONAL_ENDPOINT_V1.concat("/{id}"), "ABC")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(item), Item.class)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(updatingItem), Item.class)
                 .exchange()
                 .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
-                .jsonPath("$.price").isEqualTo(newPrice);
+                .jsonPath("$.description").isEqualTo(updatingItem.getDescription())
+                .jsonPath("$.price").isEqualTo(updatingItem.getPrice());
     }
 
     @Test
-    public void updateItemTestNotFound() {
-        double newPrice = 129.99;
-        Item item = Item.create()
+    public void updateItemNotFound() {
+        double newPrice = 139.99;
+
+        Item updatingItem = Item.create()
+                .description("Beats Headphone")
                 .price(newPrice)
                 .build();
 
         webTestClient.put()
-                .uri(ITEM.concat("/{id}"), "DEF")
-                .contentType(MediaType.APPLICATION_JSON)
+                .uri(ITEM_FUNCTIONAL_ENDPOINT_V1.concat("/{id}"), "DEF")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(Mono.just(item), Item.class)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(updatingItem), Item.class)
                 .exchange()
                 .expectStatus().isNotFound();
     }

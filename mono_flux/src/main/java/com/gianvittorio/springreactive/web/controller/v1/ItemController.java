@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static com.gianvittorio.springreactive.constants.ItemConstants.ITEM_ENDPOINT_V1;
+import static com.gianvittorio.springreactive.constants.ItemConstants.ITEM;
 
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping(ITEM_ENDPOINT_V1)
+@RequestMapping(ITEM)
 public class ItemController {
 
     private final ReactiveMongoRepository repository;

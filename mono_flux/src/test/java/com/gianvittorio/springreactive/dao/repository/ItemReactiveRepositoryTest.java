@@ -17,7 +17,7 @@ import java.util.List;
 
 @DataMongoTest
 @ExtendWith(SpringExtension.class)
-@DirtiesContext
+@DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
 public class ItemReactiveRepositoryTest {
 
     @Autowired
