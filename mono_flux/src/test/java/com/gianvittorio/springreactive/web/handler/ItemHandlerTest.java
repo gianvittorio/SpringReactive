@@ -3,6 +3,7 @@ package com.gianvittorio.springreactive.web.handler;
 import com.gianvittorio.springreactive.dao.repository.ItemReactiveRepository;
 import com.gianvittorio.springreactive.domain.document.Item;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -173,6 +174,17 @@ public class ItemHandlerTest {
                 .body(Mono.just(updatingItem), Item.class)
                 .exchange()
                 .expectStatus().isNotFound();
+    }
+
+    @Test
+    @Disabled
+    public void runtimeException() {
+        webTestClient.get()
+                .uri("/fun/runtimeException")
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody()
+                .jsonPath("$.message").isEqualTo("RuntimeException occurred.");
     }
 
     public static List<? extends Item> getItemList() {
