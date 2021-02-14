@@ -1,5 +1,6 @@
 package com.gianvittorio.springreactive.web.controller.v1;
 
+import com.gianvittorio.springreactive.constants.ItemConstants;
 import com.gianvittorio.springreactive.dao.repository.ItemReactiveRepository;
 import com.gianvittorio.springreactive.domain.document.Item;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,7 @@ import reactor.test.StepVerifier;
 import java.util.List;
 
 import static com.gianvittorio.springreactive.constants.ItemConstants.ITEM;
+import static com.gianvittorio.springreactive.constants.ItemConstants.ITEM_FUNCTIONAL_ENDPOINT_V1;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -169,6 +171,16 @@ public class ItemControllerTest {
                 .body(Mono.just(item), Item.class)
                 .exchange()
                 .expectStatus().isNotFound();
+    }
+
+    @Test
+    public void runtimeException() {
+        webTestClient.get()
+                .uri(ITEM.concat("/runtimeException"))
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectBody(String.class)
+                .isEqualTo("RuntimeException occurred.");
     }
 
     public static List<? extends Item> getItemList() {

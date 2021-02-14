@@ -49,7 +49,7 @@ public class ItemController {
         return repository.findById(id)
                 .flatMap(obj -> {
                     if (obj instanceof Item) {
-                        Item foundItem = (Item)obj;
+                        Item foundItem = (Item) obj;
 
                         foundItem.setDescription(item.getDescription());
                         foundItem.setPrice(item.getPrice());
@@ -61,5 +61,11 @@ public class ItemController {
                 })
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/runtimeException")
+    public Flux<Item> runtimeException() {
+        return repository.findAll()
+                .concatWith(Mono.error(new RuntimeException("RuntimeException occurred.")));
     }
 }
